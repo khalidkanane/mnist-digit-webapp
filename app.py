@@ -8,6 +8,7 @@ from model import MNISTModel  # Your model class
 @st.cache_resource
 def load_model():
     model = MNISTModel()
+
     model.load_state_dict(torch.load("models/mnist_cnn.pth", map_location="cpu"))
     model.eval()
     return model
@@ -23,16 +24,22 @@ canvas_result = st_canvas(
     width=280,
     drawing_mode="freedraw",
     key="canvas",
+    return_image_data=True
 )
 
 if canvas_result.image_data is not None:
+
     if st.button("Predict"):
+
         # Preprocessing: grayscale, resize to 28x28, normalize
         img = canvas_result.image_data.astype('uint8')
         img_gray = Image.fromarray(img).convert('L').resize((28, 28))
+
         arr = np.array(img_gray) / 255.0
         arr = 1.0 - arr  # invert: white strokes on black -> black digit on white
         tensor = torch.tensor(arr).unsqueeze(0).unsqueeze(0).float()
+
         with torch.no_grad():
             pred = model(tensor).argmax().item()
+
         st.success(f"Prediction: {pred}")
